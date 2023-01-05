@@ -5,13 +5,42 @@ på ITHS, JAVA2022.
   
 ### ER-Diagram  
   
-School ||--|{ StudentSchool : accepts
-    School {
-        int Id
-        string Name
-        string City
+```mermaid
+erDiagram
+    Student ||--|{ StudentSchool : enrolls
+    School ||--|{ StudentSchool : accepts
+    Student ||--|{ StudentHobby : has
+    Hobbies ||--|{ StudentHobby : of
+    Student ||--|{ Phone : owns
+
+
+
+    Hobbies {
+    	int Id
+		string Hobby
+    }
+    Phone {
+    	int PhoneId
+		int StudentId
+		string Type
+		string Number
+    }
+    StudentHobby {
+	  	int StudentId
+	  	int HobbyId 
     }
     StudentSchool {
         int StudentId
         int SchoolId
     }
+    Student {
+        int Id
+        string FirstName
+        string LastName
+    }
+    School {
+        int Id
+        string Name
+        string City
+    }
+```
