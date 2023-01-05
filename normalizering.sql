@@ -139,7 +139,7 @@ DROP TABLE IF EXISTS HobbiesStudents;
 
 CREATE TABLE HobbiesStudents (
 	Hobby VARCHAR(100),
-	StudentId VARCHAR(100)
+	StudentId INT NOT NULL
 );
 
 
@@ -157,7 +157,7 @@ BEGIN
 
   CREATE TABLE temp_Hobbies (
   	Hobby VARCHAR(100),
-  	StudentId VARCHAR(100)
+  	StudentId INT NOT NULL
   	);
 
   WHILE @x <= @max_hobbies DO
@@ -176,7 +176,7 @@ INSERT INTO HobbiesStudents
 SELECT DISTINCT * 
 FROM temp_Hobbies 
 WHERE length(Hobby) > 0;
-DROP TABLE temp_Hobbies;
+-- DROP TABLE temp_Hobbies;
 END//
 
 DELIMITER ;
