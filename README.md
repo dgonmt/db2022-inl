@@ -7,11 +7,11 @@ på ITHS, JAVA2022.
   
 ```mermaid
 erDiagram
-    Student ||--|{ StudentSchool : enrolls
-    School ||--|{ StudentSchool : accepts
+    Student ||--|{ StudentSchool : attends
+    School ||--|{ StudentSchool : enrolls
     Student ||--|{ StudentHobby : has
-    Hobbies ||--|{ StudentHobby : of
-    Student ||--|{ Phone : owns
+    Hobbies ||--|{ StudentHobby : involves
+    Student ||--|{ Phone : has
 
 
 
