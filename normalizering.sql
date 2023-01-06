@@ -176,7 +176,7 @@ INSERT INTO HobbiesStudents
 SELECT DISTINCT * 
 FROM temp_Hobbies 
 WHERE length(Hobby) > 0;
--- DROP TABLE temp_Hobbies;
+DROP TABLE temp_Hobbies;
 END//
 
 DELIMITER ;
@@ -190,4 +190,6 @@ DROP TABLE IF EXISTS StudentHobby;
 
 CREATE TABLE StudentHobby AS SELECT HobbiesStudents.StudentId AS StudentId, Hobbies.Id AS HobbyId  
 FROM HobbiesStudents JOIN Hobbies ON HobbiesStudents.Hobby = Hobbies.Hobby;
+
+DROP TABLE IF EXISTS HobbiesStudents;
 
