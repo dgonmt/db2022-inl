@@ -7,17 +7,18 @@ på ITHS, JAVA2022.
   
 ```mermaid
 erDiagram
-    Student ||--|{ StudentSchool : attends
-    School ||--|{ StudentSchool : enrolls
-    Student ||--|{ StudentHobby : has
-    Hobbies ||--|{ StudentHobby : involves
+    Student ||--o{ StudentSchool : attends
+    School ||--o{ StudentSchool : enrolls
+    Student ||--o{ StudentHobby : has
+    Hobbies ||--o{ StudentHobby : involves
     Student ||--|{ Phone : has
+    Student }|--o| Grade : has
 
 
 
     Hobbies {
-    	int Id
-		string Hobby
+    	int HobbyId
+		string Name
     }
     Phone {
     	int PhoneId
@@ -37,10 +38,15 @@ erDiagram
         int Id
         string FirstName
         string LastName
+        int GradeId
     }
     School {
         int Id
         string Name
         string City
+    }
+    Grade {
+        int GradeId
+        string Name
     }
 ```
