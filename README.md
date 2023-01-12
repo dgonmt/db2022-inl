@@ -11,7 +11,7 @@ erDiagram
     School ||--o{ StudentSchool : enrolls
     Student ||--o{ StudentHobby : has
     Hobbies ||--o{ StudentHobby : involves
-    Student ||--|{ Phone : has
+    Student ||--o{ Phone : has
     Student }|--o| Grade : has
 
 
