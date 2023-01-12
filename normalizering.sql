@@ -50,7 +50,7 @@ CREATE TABLE Phone (
     Type VARCHAR(32),
     Number VARCHAR(32) NOT NULL,
     PRIMARY KEY(PhoneId)
-);
+) ENGINE=INNODB;
 
 INSERT INTO Phone(StudentId, Type, Number) 
 SELECT ID As StudentId, "Home" AS Type, HomePhone as Number FROM UNF
@@ -67,11 +67,11 @@ WHERE MobilePhone2 IS NOT NULL AND MobilePhone2 != '';
 DROP TABLE IF EXISTS School;
 
 CREATE TABLE School (
-	Id INT NOT NULL AUTO_INCREMENT,
+	SchoolId INT NOT NULL AUTO_INCREMENT,
 	Name VARCHAR(32) NOT NULL,
 	City VARCHAR(32) NOT NULL,
-	PRIMARY KEY (Id)
-);
+	PRIMARY KEY (SchoolId)
+) ENGINE=INNODB;
 
 INSERT INTO School(Name, City)
 SELECT DISTINCT School AS Name, City AS City FROM UNF;
@@ -84,10 +84,10 @@ CREATE TABLE StudentSchool (
 	StudentId INT NOT NULL,
 	SchoolId INT NOT NULL,
 	PRIMARY KEY(StudentId, SchoolId)
-);
+) ENGINE=INNODB;
 
 INSERT INTO StudentSchool(StudentId, SchoolId)
-SELECT DISTINCT UNF.Id AS StudentId, School.Id AS SchoolId
+SELECT DISTINCT UNF.Id AS StudentId, School.SchoolId AS SchoolId
 FROM UNF INNER JOIN School ON UNF.School =School.Name;
 
 -- --------------------------------------------------UniqueHobbies-------------------------------------------------
@@ -95,10 +95,10 @@ FROM UNF INNER JOIN School ON UNF.School =School.Name;
 DROP TABLE IF EXISTS Hobbies;
 
 CREATE TABLE Hobbies (
-	Id INT NOT NULL AUTO_INCREMENT,
-	Hobby VARCHAR(100),
-	PRIMARY KEY(Id)
-);
+	HobbyId INT NOT NULL AUTO_INCREMENT,
+	Name VARCHAR(100),
+	PRIMARY KEY(HobbyId)
+) ENGINE=INNODB;
 
 DROP PROCEDURE IF EXISTS extract_unique_hobbies;
 DROP TABLE IF EXISTS temp_Hobbies;
@@ -112,20 +112,20 @@ BEGIN
   SET @x := 1;
 
   CREATE TABLE temp_Hobbies (
-  	Id INT NOT NULL AUTO_INCREMENT,
-  	Hobby VARCHAR(100),
-  	PRIMARY KEY(Id)
-  	);
+  	HobbyId INT NOT NULL AUTO_INCREMENT,
+  	Name VARCHAR(100),
+  	PRIMARY KEY(HobbyId)
+  	) ENGINE=INNODB;
 
   WHILE @x <= @max_hobbies DO
     
-	INSERT INTO temp_Hobbies(Hobby) SELECT DISTINCT SUBSTRING_INDEX(SUBSTRING_INDEX(Hobbies, ',', @x), ',', -1) AS temp_Hobby FROM UNF ;
+	INSERT INTO temp_Hobbies(Name) SELECT DISTINCT SUBSTRING_INDEX(SUBSTRING_INDEX(Hobbies, ',', @x), ',', -1) AS temp_Hobby FROM UNF ;
 
     SET @x = @x + 1;
   END WHILE;
 
-INSERT INTO Hobbies(Hobby)
-SELECT DISTINCT trim(Hobby) FROM temp_Hobbies WHERE length(Hobby) > 0;
+INSERT INTO Hobbies(Name)
+SELECT DISTINCT trim(Name) FROM temp_Hobbies WHERE length(Name) > 0;
 DROP TABLE temp_Hobbies;
 END//
 
@@ -140,7 +140,7 @@ DROP TABLE IF EXISTS HobbiesStudents;
 CREATE TABLE HobbiesStudents (
 	Hobby VARCHAR(100),
 	StudentId INT NOT NULL
-);
+) ENGINE=INNODB;
 
 
 DROP PROCEDURE IF EXISTS table_hobbiesstudent;
@@ -158,7 +158,7 @@ BEGIN
   CREATE TABLE temp_Hobbies (
   	Hobby VARCHAR(100),
   	StudentId INT NOT NULL
-  	);
+  	) ENGINE=INNODB;
 
   WHILE @x <= @max_hobbies DO
     
@@ -188,8 +188,63 @@ CALL table_hobbiesstudent();
 
 DROP TABLE IF EXISTS StudentHobby;
 
-CREATE TABLE StudentHobby AS SELECT HobbiesStudents.StudentId AS StudentId, Hobbies.Id AS HobbyId  
-FROM HobbiesStudents JOIN Hobbies ON HobbiesStudents.Hobby = Hobbies.Hobby;
+CREATE TABLE StudentHobby (
+	StudentId INT NOT NULL,
+	HobbyId INT NOT NULL,
+	PRIMARY KEY(StudentId, HobbyId)
+) ENGINE=INNODB;
+
+INSERT INTO StudentHobby(StudentId, HobbyId)
+SELECT HobbiesStudents.StudentId AS StudentId, Hobbies.HobbyId AS HobbyId
+FROM HobbiesStudents JOIN Hobbies ON HobbiesStudents.Hobby = Hobbies.Name;
 
 DROP TABLE IF EXISTS HobbiesStudents;
 
+
+-- ----------------------------------------------------Grades-------------------------------------------------------
+
+DROP TABLE IF EXISTS Grade;
+
+CREATE TABLE Grade (
+	GradeId INT NOT NULL AUTO_INCREMENT,
+	Name VARCHAR(30) NOT NULL,
+	PRIMARY KEY(GradeId)
+) ENGINE=INNODB;
+
+INSERT INTO Grade (Name)
+SELECT DISTINCT Grade FROM UNF;
+
+ALTER TABLE Student ADD COLUMN GradeId INT NOT NULL;
+
+UPDATE Student JOIN UNF ON Student.StudentId = UNF.Id
+JOIN Grade ON Grade.Name = UNF.Grade
+SET Student.GradeId = Grade.GradeId;
+
+
+-- ----------------------------------------------------Views--------------------------------------------------------
+
+-- PhoneList
+DROP VIEW IF EXISTS PhoneList;
+CREATE VIEW PhoneList AS 
+SELECT Student.StudentId, FirstName, LastName, group_concat(Number) AS Numbers FROM Student 
+JOIN Phone ON Student.StudentId=Phone.StudentId
+GROUP BY StudentId;
+
+-- HobbyList
+DROP VIEW IF EXISTS HobbyList;
+CREATE VIEW HobbyList AS 
+SELECT Student.StudentId, FirstName, LastName, group_concat(Name) AS Hobbies FROM Student
+JOIN StudentHobby USING (StudentId)
+JOIN Hobbies USING (HobbyId)
+GROUP BY StudentId;
+
+-- StudentList
+DROP VIEW IF EXISTS StudentList;
+CREATE VIEW StudentList AS
+SELECT Student.StudentId, Student.FirstName, Student.LastName, Grade.Name AS Grade, Hobbies, School.Name AS School, City, Numbers
+FROM StudentSchool
+LEFT JOIN Student USING (StudentId)
+LEFT JOIN Grade USING (GradeId)
+LEFT JOIN HobbyList USING (StudentId)
+LEFT JOIN School USING (SchoolId)
+LEFT JOIN PhoneList USING (StudentId);
